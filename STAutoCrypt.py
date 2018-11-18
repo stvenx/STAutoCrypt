@@ -1,5 +1,9 @@
 import sublime, sublime_plugin
-import os
+import base64
+import os,sys
+sys.path.insert(0, os.path.dirname(__file__))
+# from Crypto.Cipher import AES
+print(sys.path)
 pwd = ''
 class StAutoCryptCommand(sublime_plugin.TextCommand):
     def run(self, edit):
@@ -12,8 +16,8 @@ class StAutoCryptCommand(sublime_plugin.TextCommand):
         # print (sublime.expand_variables())
 
 class ReplaceInputCommand(sublime_plugin.TextCommand):
-    def run(self, edit, start = 0, end = 0, password = ''):
-        self.view.replace(edit, sublime.Region(start, end), password)
+    def run(self, edit, start = 0, end = 0, text = ''):
+        self.view.replace(edit, sublime.Region(start, end), text)
 
 class StAutoCrypt(sublime_plugin.ViewEventListener):
     def __init__(self, view):
@@ -50,7 +54,7 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
         ext = self.get_ext();
         if ext == '.stxt':
             print(222)
-            self.view.set_read_only(True)
+            # self.view.set_read_only(True)
             self.view.window().open_file(self.view.file_name())
             sublime.set_timeout(self.show_input, 100)
         else:
@@ -66,16 +70,23 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
         print(string)
         print(self.input)
         self.view.set_read_only(False)
+    def on_modified(self):
+        self.view.set_scratch(False)
 
 
     def on_pre_save(self):
         self.content = self.view.substr(sublime.Region(0, self.view.size()))
+        if self.get_ext() == '.stxt':
+            self.view.run_command('replace_input', {'start': 0,
+          'end': self.view.size(),
+          'password': '122221'})
         # print(content)
         pass
-    def on_post_save(self, edit):
+    def on_post_save(self):
+        if self.get_ext() == '.stxt':
+            self.view.run_command('replace_input', {'start': 0,
+          'end': self.view.size(),
+          'password': self.content})
+            self.view.set_scratch(True)
 
-        self.view.run_command('replace_input', {'start': 0,
-         'end': pos + new_length,
-         'password': self.})
-        pass
 
