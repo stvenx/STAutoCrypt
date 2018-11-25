@@ -1,8 +1,11 @@
 import sublime, sublime_plugin
 import base64
 import os,sys
-sys.path.insert(0, os.path.dirname(__file__))
+import hashlib
+sys.path.insert(0, os.path.dirname(__file__) + '/Crypto')
 # from Crypto.Cipher import AES
+import pyaes
+
 print(sys.path)
 pwd = ''
 class StAutoCryptCommand(sublime_plugin.TextCommand):
