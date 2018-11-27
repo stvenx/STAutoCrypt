@@ -1,7 +1,10 @@
+# -*- coding: utf-8 -*-
+
 import sublime, sublime_plugin
 import base64
 import os,sys
 import hashlib
+import base64
 sys.path.insert(0, os.path.dirname(__file__))
 # from Crypto.Cipher import AES
 print(sys.path)
@@ -77,8 +80,17 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
         self.content = self.view.substr(sublime.Region(0, self.view.size()))
         if self.get_ext() == '.stxt':
             print('on_pre_save password: ' + self.password)
+            m = hashlib.md5()
+            m.update(self.password.encode('utf-8'))
+            key = m.digest();
+            print(key)
             encrypted_content = '';
-            self.view.run_command('replace_input', {'start': 0, 'end': self.view.size(), 'text': '122221'})
+            aes = pyaes.AESModeOfOperationCTR(key)
+            ciphertext = aes.encrypt(self.content)
+            encrypted_content = base64.b64encode(ciphertext)
+            print(encrypted_content)
+            print(type(encrypted_content))
+            self.view.run_command('replace_input', {'start': 0, 'end': self.view.size(), 'text': encrypted_content.decode('utf-8')})
         print(self.content)
 
     def on_post_save(self):
