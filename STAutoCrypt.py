@@ -52,10 +52,7 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
             # self.view.set_read_only(True)
             # self.view.window().open_file(self.view.file_name())
             sublime.set_timeout(self.show_input, 100)
-        else:
 
-    def on_activated(self):
-        pass
 
     def show_input(self):
         window = self.view.window();
@@ -102,7 +99,3 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
         if self.get_ext() == '.stxt':
             self.view.run_command('replace_input', {'start': 0,'end': self.view.size(), 'text': self.content})
             self.view.set_scratch(True)
-
-class StAutoCrypt1(sublime_plugin.EventListener):
-    def on_new(self):
-
