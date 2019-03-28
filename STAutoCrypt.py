@@ -6,6 +6,8 @@ import base64
 import sys
 import os
 import hashlib
+import zipfile
+
 sys.path.insert(0, os.path.dirname(__file__))
 # from Crypto.Cipher import AES
 
@@ -51,15 +53,19 @@ def init():
             raise Exception("Can't load AES")
     globals()['AES'] = AES
 
-pwd = ''
+
 class StAutoCryptCommand(sublime_plugin.TextCommand):
     def run(self, edit):
-        file_name = self.view.file_name();
+        file_name = self.view.file_name()
         ext = os.path.splitext(file_name)[1]
+        print(ext)
+
 
 class ReplaceInputCommand(sublime_plugin.TextCommand):
-    def run(self, edit, start = 0, end = 0, text = ''):
+
+    def run(self, edit, start=0, end=0, text=''):
         self.view.replace(edit, sublime.Region(start, end), text)
+
 
 class StAutoCrypt(sublime_plugin.ViewEventListener):
     def __init__(self, view):
@@ -84,21 +90,25 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
         self.input_view.run_command('replace_input', {'start': pos, 'end': pos + new_length, 'text': '*' * new_length})
 
     def get_ext(self):
-        file_name = self.view.file_name();
+        file_name = self.view.file_name()
         ext = os.path.splitext(file_name)[1]
         return ext
 
     def on_load(self):
-        ext = self.get_ext();
+        ext = self.get_ext()
         if ext == '.stxt':
             # self.view.set_read_only(True)
             # self.view.window().open_file(self.view.file_name())
             sublime.set_timeout(self.show_input, 100)
 
-
     def show_input(self):
-        window = self.view.window();
+        window = self.view.window()
         self.input_view = sublime.active_window().show_input_panel('password:', '', self.on_done, self.maskpass, None)
+        window.focus_view(self.input_view)
+
+    def show_input_password(self):
+        window = self.view.window()
+        self.input_view = sublime.active_window().show_input_panel('password:', '', None, self.maskpass, None)
         window.focus_view(self.input_view)
 
     def on_done(self, string):
@@ -108,11 +118,11 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
 
         try:
             plaintext = self.decrypt(encrypted_content)
-            self.view.run_command('replace_input', {'start': 0,'end': self.view.size(), 'text': plaintext})
+            self.view.run_command('replace_input', {'start': 0, 'end': self.view.size(), 'text': plaintext})
             self.view.set_read_only(False)
-        except Exception as e:
+        except Exception:
             sublime.message_dialog('password error')
-            # self.view.set_read_only(True)
+            self.view.set_read_only(True)
 
     def on_modified(self):
         self.view.set_scratch(False)
@@ -129,6 +139,10 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
 
     def get_password(self):
         print(self.st_pwd)
+        if self.st_pwd == '':
+            print('empty st_pwd')
+            self.show_input_password()
+
         m = hashlib.md5()
         m.update(self.st_pwd.encode('utf-8'))
         s = m.digest()
@@ -149,11 +163,13 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
             return aes.decrypt(base64.b64decode(ciphertext, validate=True)).rstrip(C_PAD).decode('utf-8')
         except (ValueError, binascii.Error) as e:
             sublime.message_dialog('password error')
+            raise e
 
     def on_post_save(self):
         if self.get_ext() == '.stxt':
-            self.view.run_command('replace_input', {'start': 0,'end': self.view.size(), 'text': self.content})
+            self.view.run_command('replace_input', {'start': 0, 'end': self.view.size(), 'text': self.content})
             self.view.set_scratch(True)
+
 
 def plugin_loaded():
     """Load and unzip the pre-built binary files, if needed."""
