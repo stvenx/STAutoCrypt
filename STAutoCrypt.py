@@ -122,7 +122,6 @@ class StAutoCrypt(sublime_plugin.ViewEventListener):
             self.view.set_read_only(False)
         except Exception:
             sublime.message_dialog('password error')
-            self.view.set_read_only(True)
 
     def on_modified(self):
         self.view.set_scratch(False)
